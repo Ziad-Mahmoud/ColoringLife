@@ -19,12 +19,19 @@ public class ZoomHandler : MonoBehaviour
     private Camera cam;
     private float prevPinchDist;
     private Vector2 prevPinchMid;
+    /// <summary>Last time (unscaled) a two-finger gesture was active. Taps started before this are not taps.</summary>
+    public static float LastPinchTime { get; private set; } = -1f;
+
     private bool pinching;
+    private Vector3 homePos;
+    private float homeSize;
 
     private void Awake()
     {
         cam = GetComponent<Camera>();
         cam.orthographic = true;
+        homePos = transform.position;
+        homeSize = Mathf.Min(cam.orthographicSize, maxSize);
     }
 
     private void OnEnable() => EnhancedTouchSupport.Enable();
@@ -59,6 +66,7 @@ public class ZoomHandler : MonoBehaviour
             return false;
         }
 
+        LastPinchTime = Time.unscaledTime;
         Vector2 a = touches[0].screenPosition, b = touches[1].screenPosition;
         float dist = Vector2.Distance(a, b);
         Vector2 mid = (a + b) * 0.5f;
@@ -85,6 +93,19 @@ public class ZoomHandler : MonoBehaviour
         Vector3 worldAfter = cam.ScreenToWorldPoint(after);
         Vector3 delta = worldBefore - worldAfter;
         delta.z = 0f;
-        transform.position += delta;
+        transform.position = ClampToHome(transform.position + delta);
+    }
+
+    /// <summary>
+    /// Keeps the view inside the starting (full picture) view. The smaller the zoom, the more room
+    /// to move; as you zoom back out the camera slides toward its start, landing on it at the start size.
+    /// </summary>
+    private Vector3 ClampToHome(Vector3 pos)
+    {
+        float roomY = Mathf.Max(0f, homeSize - cam.orthographicSize);
+        float roomX = roomY * cam.aspect;
+        pos.x = Mathf.Clamp(pos.x, homePos.x - roomX, homePos.x + roomX);
+        pos.y = Mathf.Clamp(pos.y, homePos.y - roomY, homePos.y + roomY);
+        return pos;
     }
 }

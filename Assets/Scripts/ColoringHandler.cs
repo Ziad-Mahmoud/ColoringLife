@@ -3,8 +3,12 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class ColoringHandler : MonoBehaviour, IPointerClickHandler
+public class ColoringHandler : MonoBehaviour, IPointerDownHandler, IPointerClickHandler
 {
+    private float pressTime;
+
+    public void OnPointerDown(PointerEventData e) => pressTime = Time.unscaledTime;
+
     [SerializeField] private PictureHandler pictureHandler;
     [SerializeField] private Color currentColor = Color.red;
 
@@ -27,6 +31,9 @@ public class ColoringHandler : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData e)
     {
+        // A finger lifted after a pinch is not a colouring tap.
+        if (ZoomHandler.LastPinchTime >= pressTime) return;
+
         var sprite = pictureHandler.currentSprite;
         var tex = sprite.texture;
         Vector3 local = transform.InverseTransformPoint(e.pointerPressRaycast.worldPosition);

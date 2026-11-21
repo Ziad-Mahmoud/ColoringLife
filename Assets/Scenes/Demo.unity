@@ -401,6 +401,8 @@ MonoBehaviour:
   currentColor: {r: 0.5283019, g: 0.29654682, b: 0.29654682, a: 1}
   lineThreshold: 0.74
   edgeBleed: 2
+  fillDuration: 0.6
+  fillEase: 6
 --- !u!1 &1434149918
 GameObject:
   m_ObjectHideFlags: 0
@@ -414,6 +416,7 @@ GameObject:
   - component: {fileID: 1434149919}
   - component: {fileID: 1434149922}
   - component: {fileID: 1434149923}
+  - component: {fileID: 1434149924}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -555,6 +558,21 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   m_MaxRayIntersections: 0
+--- !u!114 &1434149924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1434149918}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a07cc7ea47d9b846a13da91ea566571, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ZoomHandler
+  minSize: 1
+  maxSize: 5
+  scrollStep: 0.287
 --- !u!1 &1712734477
 GameObject:
   m_ObjectHideFlags: 0
