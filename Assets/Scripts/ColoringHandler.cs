@@ -31,8 +31,8 @@ public class ColoringHandler : MonoBehaviour, IPointerDownHandler, IPointerClick
 
     public void OnPointerClick(PointerEventData e)
     {
-        // A finger lifted after a pinch is not a colouring tap.
-        if (ZoomHandler.LastPinchTime >= pressTime) return;
+        // A finger lifted after a pinch or pan is not a colouring tap.
+        if (ZoomHandler.LastGestureTime >= pressTime) return;
 
         var sprite = pictureHandler.currentSprite;
         var tex = sprite.texture;

@@ -19,10 +19,15 @@ public class ZoomHandler : MonoBehaviour
     private Camera cam;
     private float prevPinchDist;
     private Vector2 prevPinchMid;
-    /// <summary>Last time (unscaled) a two-finger gesture was active. Taps started before this are not taps.</summary>
-    public static float LastPinchTime { get; private set; } = -1f;
+    [Tooltip("Pixels a single pointer must move before it counts as a pan instead of a tap.")]
+    [SerializeField, Min(0f)] private float dragThreshold = 12f;
+
+    /// <summary>Last time (unscaled) a pinch or pan was active. Taps started before this are not taps.</summary>
+    public static float LastGestureTime { get; private set; } = -1f;
 
     private bool pinching;
+    private bool pressActive, dragging;
+    private Vector2 dragStart, dragPrev;
     private Vector3 homePos;
     private float homeSize;
 
@@ -39,8 +44,49 @@ public class ZoomHandler : MonoBehaviour
 
     private void Update()
     {
-        if (HandlePinch()) return;
+        if (HandlePinch())
+        {
+            pressActive = false; // re-anchor when going back to one finger, so the view doesn't jump
+            return;
+        }
+        HandleDrag();
         HandleScroll();
+    }
+
+    private void HandleDrag()
+    {
+        Vector2 pos;
+        var touches = Touch.activeTouches;
+        if (touches.Count == 1) pos = touches[0].screenPosition;
+        else if (touches.Count == 0 && Mouse.current != null && Mouse.current.leftButton.isPressed)
+            pos = Mouse.current.position.ReadValue();
+        else
+        {
+            pressActive = dragging = false;
+            return;
+        }
+
+        if (!pressActive)
+        {
+            pressActive = true;
+            dragging = false;
+            dragStart = dragPrev = pos;
+            return;
+        }
+
+        // Only pan when zoomed in; at the start size the view is locked anyway.
+        if (!dragging && cam.orthographicSize < homeSize - 0.0001f &&
+            Vector2.Distance(pos, dragStart) > dragThreshold)
+            dragging = true;
+
+        if (dragging)
+        {
+            LastGestureTime = Time.unscaledTime;
+            Vector3 delta = cam.ScreenToWorldPoint(dragPrev) - cam.ScreenToWorldPoint(pos);
+            delta.z = 0f;
+            transform.position = ClampToHome(transform.position + delta);
+        }
+        dragPrev = pos;
     }
 
     private void HandleScroll()
@@ -66,7 +112,7 @@ public class ZoomHandler : MonoBehaviour
             return false;
         }
 
-        LastPinchTime = Time.unscaledTime;
+        LastGestureTime = Time.unscaledTime;
         Vector2 a = touches[0].screenPosition, b = touches[1].screenPosition;
         float dist = Vector2.Distance(a, b);
         Vector2 mid = (a + b) * 0.5f;
