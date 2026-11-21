@@ -7,6 +7,12 @@ public class ColoringHandler : MonoBehaviour, IPointerDownHandler, IPointerClick
 {
     private float pressTime;
 
+    public Color CurrentColor
+    {
+        get => currentColor;
+        set => currentColor = value;
+    }
+
     public void OnPointerDown(PointerEventData e) => pressTime = Time.unscaledTime;
 
     [SerializeField] private PictureHandler pictureHandler;

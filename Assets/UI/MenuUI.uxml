@@ -1,0 +1,39 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="MenuUI.uss" />
+    <ui:VisualElement name="root" class="root" picking-mode="Ignore">
+
+        <!-- Main menu -->
+        <ui:VisualElement name="main-screen" class="screen screen--opaque">
+            <ui:Label text="Coloring Life" class="title" />
+            <ui:Label text="Tap. Fill. Relax." class="subtitle" />
+            <ui:Button name="play-button" text="Play" class="btn btn--primary" />
+            <ui:Button name="quit-button" text="Quit" class="btn" />
+        </ui:VisualElement>
+
+        <!-- Picture selection -->
+        <ui:VisualElement name="select-screen" class="screen screen--opaque">
+            <ui:VisualElement class="top-bar">
+                <ui:Button name="select-back-button" text="‹ Back" class="btn btn--small" />
+                <ui:Label text="Choose a picture" class="header" />
+            </ui:VisualElement>
+            <ui:Label name="empty-label" text="Loading pictures…" class="subtitle" />
+            <ui:ScrollView name="picture-scroll" class="picture-scroll">
+                <ui:VisualElement name="picture-grid" class="picture-grid" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+
+        <!-- In-game HUD: only the bars catch input, the middle lets taps reach the picture -->
+        <ui:VisualElement name="game-screen" class="screen screen--hud" picking-mode="Ignore">
+            <ui:VisualElement class="top-bar top-bar--hud">
+                <ui:Button name="game-back-button" text="‹ Pictures" class="btn btn--small" />
+                <ui:VisualElement class="spacer" picking-mode="Ignore" />
+                <ui:Button name="reset-view-button" text="Fit" class="btn btn--small" />
+            </ui:VisualElement>
+            <ui:VisualElement class="spacer" picking-mode="Ignore" />
+            <ui:ScrollView name="palette-scroll" mode="Horizontal" class="palette-scroll">
+                <ui:VisualElement name="palette" class="palette" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

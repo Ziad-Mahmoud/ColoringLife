@@ -39,6 +39,14 @@ public class ZoomHandler : MonoBehaviour
         homeSize = Mathf.Min(cam.orthographicSize, maxSize);
     }
 
+    /// <summary>Snap back to the starting full-picture view.</summary>
+    public void ResetView()
+    {
+        transform.position = homePos;
+        cam.orthographicSize = homeSize;
+        pressActive = dragging = pinching = false;
+    }
+
     private void OnEnable() => EnhancedTouchSupport.Enable();
     private void OnDisable() => EnhancedTouchSupport.Disable();
 
