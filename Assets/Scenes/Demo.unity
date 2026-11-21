@@ -486,6 +486,8 @@ MonoBehaviour:
   edgeBleed: 2
   fillDuration: 0.6
   fillEase: 6
+  coloringSfx: {fileID: 8300000, guid: a63dd0a2ed3741b5867c03b41bd62bd7, type: 3}
+  sfxVolume: 1
 --- !u!1 &1434149918
 GameObject:
   m_ObjectHideFlags: 0

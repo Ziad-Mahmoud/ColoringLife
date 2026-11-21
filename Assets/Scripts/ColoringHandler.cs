@@ -29,6 +29,14 @@ public class ColoringHandler : MonoBehaviour, IPointerDownHandler, IPointerClick
     [SerializeField, Min(0f)] private float fillDuration = 0.6f;
     [SerializeField] private Ease fillEase = Ease.OutQuad;
 
+    [Header("Sound")]
+    [Tooltip("Looping SFX played while any colour fill is animating.")]
+    [SerializeField] private AudioClip coloringSfx;
+    [SerializeField, Range(0f, 1f)] private float sfxVolume = 1f;
+
+    private AudioSource sfxSource;
+    private int activeFills;
+
     // Untouched line art per texture: walls and shading are always taken from here,
     // so refilling an already coloured area behaves exactly like the first fill.
     private readonly Dictionary<Texture2D, Color32[]> originals = new();
@@ -79,6 +87,7 @@ public class ColoringHandler : MonoBehaviour, IPointerDownHandler, IPointerClick
         // Tween progress 0->1; pixels are revealed ring by ring outward from the tap.
         int applied = 0;
         float progress = 0f;
+        FillStarted();
         DOTween.To(() => progress, v => progress = v, 1f, fillDuration)
             .SetEase(fillEase)
             .SetTarget(this)
@@ -96,7 +105,29 @@ public class ColoringHandler : MonoBehaviour, IPointerDownHandler, IPointerClick
                 for (int k = applied; k < order.Count; k++) pixels[order[k]] = colors[k];
                 tex.SetPixels32(pixels);
                 tex.Apply();
-            });
+            })
+            .OnKill(FillEnded); // fires after complete or when killed early
+    }
+
+    void FillStarted()
+    {
+        if (activeFills++ > 0 || coloringSfx == null) return;
+        if (sfxSource == null)
+        {
+            sfxSource = gameObject.AddComponent<AudioSource>();
+            sfxSource.playOnAwake = false;
+            sfxSource.loop = true;
+        }
+        sfxSource.clip = coloringSfx;
+        sfxSource.volume = sfxVolume;
+        sfxSource.Play();
+    }
+
+    void FillEnded()
+    {
+        if (--activeFills > 0) return;
+        activeFills = 0;
+        if (sfxSource != null) sfxSource.Stop();
     }
 
     // Region bounded by dark lines in the original art, grown a few pixels under the outline.
