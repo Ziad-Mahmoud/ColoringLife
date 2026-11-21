@@ -1,0 +1,90 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
+using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
+
+/// <summary>
+/// Zooms an orthographic camera with the mouse wheel / trackpad scroll, or with a two-finger pinch.
+/// Zoom is anchored on the cursor or the pinch centre, and moving two fingers together pans.
+/// Put it on the camera that renders the picture.
+/// </summary>
+[RequireComponent(typeof(Camera))]
+public class ZoomHandler : MonoBehaviour
+{
+    [SerializeField, Min(0.01f)] private float minSize = 1f;
+    [SerializeField, Min(0.01f)] private float maxSize = 10f;
+    [Tooltip("Zoom factor per scroll notch (120 units on most mice).")]
+    [SerializeField, Range(0.01f, 0.5f)] private float scrollStep = 0.1f;
+
+    private Camera cam;
+    private float prevPinchDist;
+    private Vector2 prevPinchMid;
+    private bool pinching;
+
+    private void Awake()
+    {
+        cam = GetComponent<Camera>();
+        cam.orthographic = true;
+    }
+
+    private void OnEnable() => EnhancedTouchSupport.Enable();
+    private void OnDisable() => EnhancedTouchSupport.Disable();
+
+    private void Update()
+    {
+        if (HandlePinch()) return;
+        HandleScroll();
+    }
+
+    private void HandleScroll()
+    {
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+        float scroll = mouse.scroll.ReadValue().y;
+        if (Mathf.Approximately(scroll, 0f)) return;
+
+        // Normalise: mice report ~120 per notch, trackpads report small values.
+        float notches = Mathf.Abs(scroll) >= 60f ? scroll / 120f : scroll / 10f;
+        float factor = Mathf.Pow(1f - scrollStep, notches);
+        Vector2 p = mouse.position.ReadValue();
+        ZoomAround(p, p, cam.orthographicSize * factor);
+    }
+
+    private bool HandlePinch()
+    {
+        var touches = Touch.activeTouches;
+        if (touches.Count < 2)
+        {
+            pinching = false;
+            return false;
+        }
+
+        Vector2 a = touches[0].screenPosition, b = touches[1].screenPosition;
+        float dist = Vector2.Distance(a, b);
+        Vector2 mid = (a + b) * 0.5f;
+
+        if (!pinching || dist < 1f)
+        {
+            pinching = true;
+            prevPinchDist = Mathf.Max(dist, 1f);
+            prevPinchMid = mid;
+            return true;
+        }
+
+        ZoomAround(prevPinchMid, mid, cam.orthographicSize * prevPinchDist / dist);
+        prevPinchDist = dist;
+        prevPinchMid = mid;
+        return true;
+    }
+
+    /// <summary>Sets the size, keeping the world point under <paramref name="before"/> under <paramref name="after"/>.</summary>
+    private void ZoomAround(Vector2 before, Vector2 after, float newSize)
+    {
+        Vector3 worldBefore = cam.ScreenToWorldPoint(before);
+        cam.orthographicSize = Mathf.Clamp(newSize, minSize, maxSize);
+        Vector3 worldAfter = cam.ScreenToWorldPoint(after);
+        Vector3 delta = worldBefore - worldAfter;
+        delta.z = 0f;
+        transform.position += delta;
+    }
+}
